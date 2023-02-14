@@ -22,9 +22,9 @@ class Module extends ServiceProvider
     
     protected array $children = [];
     
-    public $apiRoutesPrefix = '';
-    public $webRoutesPrefix = '';
-    public $routePrefix     = '';
+    public string $apiRoutesPrefix = '';
+    public string $webRoutesPrefix = '';
+    public string $routePrefix     = '';
     
     public function __construct($app)
     {
@@ -124,13 +124,23 @@ class Module extends ServiceProvider
         return $module;
     }
     
-    public function getRootPath(): string
+    public static function getRootPath(): string
     {
-        $ruta = str_replace('App\\', '', get_class($this));
+        $ruta = str_replace('App\\', '', static::class);
         $ruta = str_replace('\\', DIRECTORY_SEPARATOR, $ruta);
         $ruta = app_path($ruta);
         $ruta = dirname($ruta);
         return $ruta;
+    }
+    
+    public static function getRootNamespace(): string
+    {
+        $className = static::class;
+        $step1     = str_replace('\\', DIRECTORY_SEPARATOR, $className);
+        $step2     = dirname($step1);
+        $step3     = str_replace(DIRECTORY_SEPARATOR, '\\', $step2);
+        
+        return $step3;
     }
     
     protected function getMigrationsPath()
@@ -178,7 +188,7 @@ class Module extends ServiceProvider
         }
     }
     
-    public function getRoutePrefix($type): string
+    public function getRoutePrefix(string $type): string
     {
         $prefix = '';
         if ($type === 'api') {
@@ -248,15 +258,16 @@ class Module extends ServiceProvider
 
     public function bootViews()
     {
-        $reflectedClass = new ReflectionClass($this);
-
-        $viewsPath = dirname($reflectedClass->getFileName()) . '/Views';
-
+        $viewsPath = __DIR__ . '/views';
         if (is_dir($viewsPath)) {
-            View::getFinder()->prependLocation(
-                $viewsPath
-            );
+            $this->loadViewsFrom($viewsPath, $this->getKey());
         }
+    }
+    
+    public static function view(string $name)
+    {
+        $key = static::getKey();
+        return view("{$key}::{$name}");
     }
 
     public function router(): Router
