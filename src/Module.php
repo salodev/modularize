@@ -258,7 +258,7 @@ class Module extends ServiceProvider
 
     public function bootViews()
     {
-        $viewsPath = __DIR__ . '/views';
+        $viewsPath = $this->getRootPath() . '/Views';
         if (is_dir($viewsPath)) {
             $this->loadViewsFrom($viewsPath, $this->getKey());
         }
